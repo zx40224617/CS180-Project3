@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <title>Project 3</title>
+  </head>
+
+  <body class="pageContents">
+    <div class="wrapper">
+      <h2 class="title">Background of the project:</h2>
+      <p class="introduction">
+        In this project, we are asked to morph a face to another face, and 
+        create an animation (gif) for that. We also need to compute the "mean"
+        face of a population, and extrapolate from the "mean" face to create
+        a caricature of myself. 
+      </p>
+
+      <h3>Part 1. Defining Correspondences</h3>
+      <p class="description">
+        In order for the morphing to work, we need consistent labeling point on both 
+        faces. Which we need to define the correspondence manually on face, 
+        ear, nose, etc... <br/><br>
+        In this case, I used <a href ="https://cal-cs180.github.io/fa23/hw/proj3/tool.html">this</a> labeling tool that is 
+        provided in the assignment specs for labeling the correspondence. 
+      </p>
+
+      <p class="imgTitle">Original Image:</p>
+      <div class = "imageWrapper">
+        <img src="./images/Ado.webp" class = "resultImage">
+        <img src = ./images/resized_no_background_Suisei.jpg class = "resultImage">
+      </div>
+      <p class="description">
+        After we get the lableing point, we can plug it into the Delaunay 
+        method that will create the triangulation that we need for morphing.
+        Note that the green dots you see below is the labeling that we chose
+        using the tool.
+      </p>
+      <p class="imgTitle">Image with Triangulation:</p>
+      <div class = "imageWrapper">
+        <img src="./images/Ado_with_triangulation.jpg" class = "resultImage">
+        <img src = ./images/Suisei_with_triangulation.jpg class = "resultImage">
+      </div>
+      <hr> 
+      <h3 class="title">Part 2. Computing the "Mid-way Face":</h3>
+      <p class="description">
+        Before we get into the morphing sequence for animation, we need to first
+        get the "mid-way" face. Here is the process: 
+        
+      </p>
+      <ol>
+        <li>computing the average shape of the 2 faces</li>
+        <li>warping both faces into that average shape</li> 
+        <li>averaging the colors together (Cross-Dissolving)</li>
+    </ol>
+ 
+      <p class="description">
+        For computing in the average shape, we just need to add all the labeling points in 2
+        faces together and divided by 2 (or times 0.5 to each of them, which will 
+        make more sense in the next part when we do sequence). Same thing with the 
+        average color, just times 0.5 to each of the faces and add them together. 
+        <br>
+        <br>
+        The main issue here is the warping, what we are doing here is that, 
+        we need to compute the Affine transformation for all the triangles
+        in the triangulation for both image to the avaerage shape. Note that This
+        means that we also need the Delaunay triangulation for the avaerage shape.
+        And for the pixels, we need to extrapolate the original pixels into the 
+        pixels that we need in the meam face. In this case, in order to get a better 
+        results and prevent holes, we will use inverse-warping. 
+      </p>
+      <p class="imgTitle">Original Images with Mid Face:</p>
+      <div class = "imageWrapper">
+        <img src="./images/Ado.webp" class = "meanFaceImage">
+        <img src="./images/mid_Ado_Suisei.jpg" class = "meanFaceImage">
+        <img src = ./images/resized_no_background_Suisei.jpg class = "meanFaceImage">
+      </div>
+     <hr/>
+      <h3 class="title">Part 3. The Morph Sequence    </h3>
+      <p class="description">
+        After we get the mean face, what we need to do now is implement the 
+        idea and make a gif or video using the "morphing sequence". Which we 
+        want to make an animation that a face gradually changing to another face. 
+        <br>
+        <br>
+        The morphing sequence is bascially just a bunch of morphing faces
+        stacked together. Same logic as the mean face, but this time, instead
+        of the fixed 0.5 that we times each image, we have one of the image started as 1, and the other
+        started at 0. Depends on how many morphing faces you want for creating the
+        animation, you have an alpha = 1 / num_of_face. And you basically use a for loop
+        to compute the shape and the color for each step using a formula like the
+        following:
+        <br>
+        average_shape = img1Points * (1 - t)  + img2Points * t (same logic for the color)
+      </p>
+      <p class="imgTitle">My gif from Ado to Suisei:</p>
+      <img src="./images/face_morphing.gif" alt="" class="gif"/>
+      <hr>
+      <h3 class="title">Part 4. The "Mean face" of a population:</h3>
+      <p class="description">
+      In this part, we need to compute the mean face for a population of 
+      people. And warp our own face into its geimetry and also wrap the 
+      mean face into mt face geometry. Over here, I use the first 100
+      faces in the FEI database. Note that there are some picture that 
+      have labeling points outside of the image where I just get rid of them 
+      as the outliers.
+      </p>
+      <p class="imgTitle">Some Examples of warped no expression face:</p>
+      <div class = "imageWrapper">
+        <img src="./images/90 th_face_morphed.jpg" class = "resultImage">
+        <img src="./images/99 th_face_morphed.jpg" class = "resultImage">
+
+      </div>
+      <p class="imgTitle">Some Examples of warped smile expression face:</p>
+      <div class = "imageWrapper">
+        <img src="./images/80 th_smile_face_morphed.jpg" class = "resultImage">
+        <img src="./images/70 th_smile_face_morphed.jpg" class = "resultImage">
+      </div>
+      <p class="imgTitle">Average no expression face and smiling face:</p>
+      <div class = "imageWrapper">
+        <img src="./images/average_no_expression.jpg" class = "resultImage">
+        <img src="./images/average_smile.jpg" class = "resultImage">
+      </div>
+      <p class="imgTitle">My face warped into average face geomerty and average face warped in my face geomerty (no expression):</p>
+      <div class = "imageWrapper">
+        <img src="./images/my_face_to_average.jpg" class = "resultImage">
+        <img src="./images/average_to_my_face.jpg" class = "resultImage">
+      </div>
+      <hr>
+      <h3 class="title">Part 5. Caricatures: Extrapolating from the mean:</h3>
+      <p class="description">
+        In this part, we are asked to create a caricature of our own face from the 
+        population mean face that we computed in the last part. Since we are suggested 
+        that this may work better with some characteristics specific mean, so I decided
+        to used the mean smiling face that we got in the last part.  
+    </p>
+    <p class="imgTitle">My face extrapolated into the smile face with alpha = 2:</p>
+    <div class = "imageWrapper">
+      <img src="./images/selfie2.jpg" class = "resultImage">
+      <img src="./images/my_face_to_smile.jpg" class = "resultImage">
+    </div>
+    <p class="description">
+        As you can see, my face is now smiling, although it is not that
+        obvious because my mouth is not opened. 
+    </p>
+
+    <hr>
+    <h3 class="title">Bells and Whistle - Change Gender:</h3>
+    <p class="description">
+        In this bells and whistle, I tried to use the average Chinese women
+        face that I found <a href ="https://pmsol3.wordpress.com/2009/10/10/world-of-facial-averages-east-southeast-asia-pacific-islander/">online</a> to change the gender of my face. We are also
+        asked to show the example where we only morph the shape or appearance.
+  </p>
+  <p class="imgTitle">My original face and average Chinese woman face:</p>
+  <div class = "imageWrapper">
+    <img src="./images/selfie4.jpg" class = "resultImage">
+    <img src="./images/chineseaveragewoman.webp" class = "resultImage">
+  </div>
+
+  <p class="imgTitle">Morphing for shape only and appearance only:</p>
+  <div class = "imageWrapper">
+    <img src="./images/morphed_shape_only.jpg" class = "resultImage">
+    <img src="./images/morphed_appearance_only.jpg" class = "resultImage">
+  </div>
+  
+  <p class="imgTitle">Final result (morph both shape and appearance):</p>
+  <div class = "imageWrapper">
+    <img src="./images/self_to_woman_morphed.jpg" class = "resultImage">
+
+  </div>
+  
+  <p class="description">
+ Sorry for hurting your eyes, I apologize to who ever is reading this. But I think it
+ is quite successful that my face now look more like a woman than a man. 
+</p>
+  </body>
+</html>
